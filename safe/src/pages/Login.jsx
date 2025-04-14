@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Web3 from "web3";
 import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
 import "./Login.css";
+import { WEB3_PROVIDER, IPFS_GATEWAY } from "../config/ipfs-config";
+import { getFromIPFS } from "../services/pinata-service";
 
 const Login = () => {
     const [type, setType] = useState(false);
-    const [doctors, setDoc] = useState([]);
-    const [patients, setPatient] = useState([]);
     const [cookies, setCookie] = useCookies([]);
 
     const [log, setLog] = useState({
@@ -16,7 +16,7 @@ const Login = () => {
         password: ""
     });
 
-    const web3 = new Web3(window.ethereum);
+    const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
     const mycontract = new web3.eth.Contract(
         contract["abi"],
         contract["address"]
@@ -28,140 +28,81 @@ const Login = () => {
         setLog(newData);
     }
 
-    async function loadDoctors() {
-        var accounts = await window.ethereum.request({
-            method: "eth_requestAccounts",
-        });
-        var currentaddress = accounts[0];
-
-        const web3 = new Web3(window.ethereum);
-        const mycontract = new web3.eth.Contract(
-            contract["abi"],
-            contract["address"]
-        );
-
-        mycontract.methods
-            .getdata()
-            .call()
-            .then(res => {
-                res.map(data => {
-                    data = JSON.parse(data);
-                    if (data['type'] === 'doctor') {
-                        doctors.push(data);
-                    }
-                })
-                setCookie('doctors', doctors);
-            })
-    }
-
-    function resetCook(val, data) {
-        var list = [];
-        for (let j = 1; j < data.length; j++) {
-            list.push(data[j]);
-        }
-        setCookie(val, list);
-    }
-
     async function login(e) {
-        var accounts = await window.ethereum.request({
+        await window.ethereum.request({
             method: "eth_requestAccounts",
         });
-        var currentaddress = accounts[0];
 
         if (!e) {
-            // patient
-            var pats = [];
-            const vis = [];
-            await mycontract.methods
-                .getPatient()
-                .call()
-                .then(async (res) => {
-                    for (let i = res.length - 1; i >= 0; i--) {
-                        const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
-                        if (!vis.includes(data.mail)) {
-                            vis.push(data.mail);
-                            pats.push(res[i]);
-                        }
-                    }
-                });
-
-            let flag = 0;
-            pats.map(async (data) => {
-                await fetch(`http://localhost:8080/ipfs/${data}`)
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.mail === log.mail) {
-                            if (res.password === log.password) {
-                                console.log(data);
-                                setCookie('hash', data);
+            // Patient login
+            try {
+                const patientCIDs = await mycontract.methods.getPatient().call();
+                
+                for (const cid of patientCIDs) {
+                    try {
+                        const data = await getFromIPFS(cid);
+                        
+                        if (data.mail === log.mail) {
+                            if (data.password === log.password) {
+                                setCookie('hash', cid);
+                                setCookie('name', data.name);
+                                setCookie('mail', data.mail);
                                 setCookie('type', 'patient');
-                                alert("Logged in");
+                                alert("Logged in successfully!");
                                 window.location.href = "/myprofile";
-                            }
-                            else {
-                                alert("Wrong Password");
+                                return;
+                            } else {
+                                alert("Incorrect password");
+                                return;
                             }
                         }
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    })
-            })
-        }
-        else {
-            // doctor
-            var docs = [];
-            await mycontract.methods
-                .getDoctor()
-                .call()
-                .then(res => {
-                    res.map(d => {
-                        docs.push(d);
-                    })
-                });
-
-            let flag = 0;
-            docs.map(data => {
-                fetch(`http://localhost:8080/ipfs/${data}`)
-                    .then(res => res.json())
-                    .then(res => {
-                        if (res.mail === log.mail) {
-                            if (res.password === log.password) {
-                                setCookie('hash', data);
+                    } catch (error) {
+                        console.error("Error fetching patient data:", error);
+                    }
+                }
+                alert("No patient account found with this email");
+            } catch (error) {
+                console.error("Error in patient login:", error);
+                alert("Login failed. Please try again.");
+            }
+        } else {
+            // Doctor login
+            try {
+                const doctorCIDs = await mycontract.methods.getDoctor().call();
+                
+                for (const cid of doctorCIDs) {
+                    try {
+                        const data = await getFromIPFS(cid);
+                        
+                        if (data.mail === log.mail) {
+                            if (data.password === log.password) {
+                                setCookie('hash', cid);
+                                setCookie('name', data.name);
+                                setCookie('mail', data.mail);
                                 setCookie('type', 'doctor');
-                                alert("Logged in");
+                                alert("Logged in successfully!");
                                 window.location.href = "/myprofiledoc";
-                            }
-                            else {
-                                alert("Wrong Password");
+                                return;
+                            } else {
+                                alert("Incorrect password");
+                                return;
                             }
                         }
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    })
-            })
+                    } catch (error) {
+                        console.error("Error fetching doctor data:", error);
+                    }
+                }
+                alert("No doctor account found with this email");
+            } catch (error) {
+                console.error("Error in doctor login:", error);
+                alert("Login failed. Please try again.");
+            }
         }
-    }
-
-    async function show() {
-        mycontract.methods
-            .getdata()
-            .call()
-            .then(res => {
-                res.map(d => {
-                    console.log(JSON.parse(d));
-                })
-            })
     }
 
     return (
         <div className="login-container bg-gradient-to-r from-cyan-500 to-blue-500 via-teal-200 ">
-            <form className="login-form backdrop-blur-lg
-               [ p-8 md:p-10 lg:p-10 ]
-               [ bg-gradient-to-b from-white/60 to-white/30 ]
-               [ border-[1px] border-solid border-white border-opacity-30 ]
-               [ shadow-black/70 shadow-2xl ]">
+            <form className="login-form backdrop-blur-lg [ p-8 md:p-10 lg:p-10 ] [ bg-gradient-to-b from-white/60 to-white/30 ] [ border-[1px] border-solid border-white border-opacity-30 ] [ shadow-black/70 shadow-2xl ]">
                 <h2 className="login-form-title">Log In</h2>
                 <div className="input-container">
                     <div className="input-div">

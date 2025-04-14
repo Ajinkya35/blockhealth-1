@@ -1,24 +1,53 @@
 const fs = require('fs');
 const Web3 = require('web3');
 
-// const abi = JSON.parse(fs.readFileSync("/Users/virajchandra/Developer/Projects/MediVault/backend/contracts/Cruds.abi"));
-// const bytecode = fs.readFileSync("/Users/virajchandra/Developer/Projects/MediVault/backend/contracts/Cruds.bin").toString();
+// Path to compiled contract artifacts - using relative paths instead of absolute
+const abi = JSON.parse(fs.readFileSync("./contracts/Cruds.abi"));
+const bytecode = fs.readFileSync("./contracts/Cruds.bin").toString();
 
-const abi = JSON.parse(fs.readFileSync("C:\\Users\\HP\\Desktop\\safe\\backend\\contracts\\Cruds.abi"));
-const bytecode = fs.readFileSync("C:\\Users\\HP\\Desktop\\safe\\backend\\contracts\\Cruds.bin").toString();
-
-const web3 = new Web3(new Web3.providers.HttpProvider("HTTP://127.0.0.1:8545"));
+// Connect to local Ethereum network (Ganache) - update port to 7545
+const web3 = new Web3(new Web3.providers.HttpProvider("HTTP://127.0.0.1:7545"));
 
 async function deploy() {
-    // const w3 = new Web3(window.ethereum);
+  try {
+    // Get list of accounts from Ganache
+    const accounts = await web3.eth.getAccounts();
+    console.log('Available accounts:', accounts);
+    
+    // Use the first account for deployment
+    const deployerAccount = accounts[0];
+    console.log('Using account for deployment:', deployerAccount);
+    
+    // Create contract instance
     let contract = new web3.eth.Contract(abi);
-    contract = contract.deploy({data: bytecode});
-
-    const deployContract = await contract.send({
-        from: "0xc3367aa13e2e9d17586C4FF8b7A28d8D245C66Fa",
-        gas: "6721975",
-    })
-    console.log(deployContract.options.address);
+    
+    // Deploy the contract
+    const deployTx = contract.deploy({
+      data: '0x' + bytecode // Make sure to add '0x' prefix if not already in the bytecode
+    });
+    
+    // Send the deployment transaction
+    const deployedContract = await deployTx.send({
+      from: deployerAccount,
+      gas: 6721975,
+    });
+    
+    // Log the contract address
+    console.log('Contract deployed successfully!');
+    console.log('Contract address:', deployedContract.options.address);
+    
+    // Save contract address to a file for future reference
+    fs.writeFileSync('./contract-address.txt', deployedContract.options.address);
+    console.log('Contract address saved to contract-address.txt');
+    
+    return deployedContract.options.address;
+  } catch (error) {
+    console.error('Error deploying contract:', error);
+    throw error;
+  }
 }
 
-deploy();
+// Execute deployment
+deploy()
+  .then(() => console.log('Deployment completed'))
+  .catch(err => console.error('Deployment failed:', err));

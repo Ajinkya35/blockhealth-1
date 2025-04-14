@@ -1,15 +1,15 @@
-import React, { useState, Fragment, useEffect } from "react";
-import { nanoid } from "nanoid";
+import React, { useState, useEffect } from "react";
 import Web3 from "web3";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
 import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
-import { create } from 'ipfs-http-client'
+import { WEB3_PROVIDER, IPFS_GATEWAY } from "../config/ipfs-config";
+import { uploadJSONToPinata, getFromIPFS } from "../services/pinata-service";
 
 const Insurance = () => {
-  const web3 = new Web3(window.ethereum);
+  const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
   const mycontract = new web3.eth.Contract(
     contract["abi"],
     contract["address"]
@@ -18,27 +18,24 @@ const Insurance = () => {
   const [insurances, setInsurance] = useState([]);
 
   useEffect(() => {
-    const ins = [];
-    async function getIns() {
-      await mycontract.methods
-        .getPatient()
-        .call()
-        .then(async (res) => {
-          for (let i = res.length - 1; i >= 0; i--) {
-            if (res[i] === cookies['hash']) {
-              const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
-              ins.push(data.insurance);
-              break;
-            }
+    const fetchInsurance = async () => {
+      try {
+        const patientCIDs = await mycontract.methods.getPatient().call();
+        
+        for (let i = patientCIDs.length - 1; i >= 0; i--) {
+          if (patientCIDs[i] === cookies['hash']) {
+            const data = await getFromIPFS(patientCIDs[i]);
+            setInsurance([data.insurance || []]);
+            break;
           }
-        });
-        // console.log(ins);
-      setInsurance(ins);
-    }
-    getIns();
-    return;
-  }, [insurances.length]);
-
+        }
+      } catch (error) {
+        console.error("Error fetching insurance data:", error);
+      }
+    };
+    
+    fetchInsurance();
+  }, []);
 
   const [addFormData, setAddFormData] = useState({
     company: "",
@@ -52,102 +49,87 @@ const Insurance = () => {
     setAddFormData(newFormData);
   };
 
-
   async function submit() {
-    var accounts = await window.ethereum.request({
-      method: "eth_requestAccounts",
-    });
-    var currentaddress = accounts[0];
-
-    mycontract.methods
-      .getPatient()
-      .call()
-      .then(async (res) => {
-        for (let i = res.length - 1; i >= 0; i--) {
-          if (res[i] === cookies['hash']) {
-            const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
-            const ins = data.insurance;
-            ins.push(addFormData);
-
-            data.insurance = ins;
-            let client = create();
-            client = create(new URL('http://127.0.0.1:5001'));
-            const { cid } = await client.add(JSON.stringify(data));
-            const hash = cid['_baseCache'].get('z');
-
-            await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
-              setCookie('hash', hash);
-              alert("Insurance Added");
-              window.location.reload();
-            }).catch((err) => {
-              console.log(err);
-            })
-          }
-        }
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
       });
-  }
+      const currentaddress = accounts[0];
 
-
-  async function del(policy) {
-    var accounts = await window.ethereum.request({
-      method: "eth_requestAccounts",
-    });
-    var currentaddress = accounts[0];
-
-    const web3 = new Web3(window.ethereum);
-    const mycontract = new web3.eth.Contract(
-      contract["abi"],
-      contract["address"]
-    );
-
-    mycontract.methods.getPatient().call().then(async (res) => {
-      for (let i = res.length - 1; i >= 0; i--) {
-        if (res[i] === cookies['hash']) {
-          const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json();
-          const alls = data.insurance;
-          const newList = [];
-          for (let i = 1; i < alls.length; i++) {
-            if (alls[i].policyNo === policy) {
-              continue;
-            }
-            else {
-              newList.push(alls[[i]]);
-            }
-          }
-          data.insurance = newList;
-
-          let client = create();
-          client = create(new URL('http://127.0.0.1:5001'));
-          const { cid } = await client.add(JSON.stringify(data));
-          const hash = cid['_baseCache'].get('z');
-
-          await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
-            setCookie('hash', hash);
-            alert("Deleted");
-            window.location.reload();
-          }).catch((err) => {
-            console.log(err);
-          })
+      const patientCIDs = await mycontract.methods.getPatient().call();
+      
+      for (let i = patientCIDs.length - 1; i >= 0; i--) {
+        if (patientCIDs[i] === cookies['hash']) {
+          const data = await getFromIPFS(patientCIDs[i]);
+          const ins = data.insurance || [];
+          ins.push(addFormData);
+          data.insurance = ins;
+          
+          const hash = await uploadJSONToPinata(data);
+          
+          await mycontract.methods.addPatient(hash).send({ from: currentaddress });
+          setCookie('hash', hash);
+          alert("Insurance Added");
+          window.location.reload();
+          break;
         }
       }
-    })
+    } catch (error) {
+      console.error("Error adding insurance:", error);
+      alert("Failed to add insurance. Please try again.");
+    }
+  }
+
+  async function del(policy) {
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      const currentaddress = accounts[0];
+
+      const patientCIDs = await mycontract.methods.getPatient().call();
+      
+      for (let i = patientCIDs.length - 1; i >= 0; i--) {
+        if (patientCIDs[i] === cookies['hash']) {
+          const data = await getFromIPFS(patientCIDs[i]);
+          const alls = data.insurance || [];
+          const newList = alls.filter(item => item.policyNo !== policy);
+          
+          data.insurance = newList;
+          const hash = await uploadJSONToPinata(data);
+          
+          await mycontract.methods.addPatient(hash).send({ from: currentaddress });
+          setCookie('hash', hash);
+          alert("Insurance deleted");
+          window.location.reload();
+          break;
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting insurance:", error);
+      alert("Failed to delete insurance. Please try again.");
+    }
   }
 
   function showInsurances() {
-    if (insurances.length > 0) {
-      return insurances[0].map(data => {
-        return (
-          <tr>
-            <td>{data.company}</td>
-            <td>{data.policyNo}</td>
-            <td>{data.expiry}</td>
-            <td>
-              <input type="button" value="Delete" onClick={() => del(data.policyNo)} />
-            </td>
-          </tr>
-        )
-      })
+    if (insurances.length > 0 && Array.isArray(insurances[0])) {
+      return insurances[0].map((data, index) => {
+        if (data && data.company) {
+          return (
+            <tr key={index}>
+              <td>{data.company}</td>
+              <td>{data.policyNo}</td>
+              <td>{data.expiry}</td>
+              <td>
+                <input type="button" value="Delete" onClick={() => del(data.policyNo)} />
+              </td>
+            </tr>
+          );
+        }
+        return null;
+      });
     }
+    return null;
   }
 
   return (
@@ -156,23 +138,17 @@ const Insurance = () => {
         <Sidebar />
       </div>
 
-      <div
-        className={
-          "dark:bg-main-dark-bg  bg-main-bg min-h-screen ml-72 w-full  "
-        }
-      >
+      <div className="dark:bg-main-dark-bg bg-main-bg min-h-screen ml-72 w-full">
         <div className="fixed md:static bg-main-bg dark:bg-main-dark-bg navbar w-full ">
           <Navbar />
         </div>
-        <div
-          style={{ display: "flex", flexDirection: "column", padding: "4rem", justifyContent: "center", alignItems: "flex-end", gap: "4rem" }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", padding: "4rem", justifyContent: "center", alignItems: "flex-end", gap: "4rem" }}>
           <form style={{ width: "100%" }}>
             <table style={{ borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th className="">Policy Number</th>
                   <th className="">Company</th>
+                  <th className="">Policy Number</th>
                   <th className="">Expiry</th>
                   <th className="">Actions</th>
                 </tr>

@@ -1,13 +1,14 @@
-import React, { useState, Fragment, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Web3 from "web3";
 import Navbar from "../components/Navbar";
 import Sidebar2 from "../components/Sidebar2";
 import contract from "../contracts/contract.json";
 import { useCookies } from "react-cookie";
-import { create } from 'ipfs-http-client'
+import { WEB3_PROVIDER } from "../config/ipfs-config";
+import { uploadJSONToPinata, getFromIPFS } from "../services/pinata-service";
 
 const Patients = () => {
-    const web3 = new Web3(window.ethereum);
+    const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
     const mycontract = new web3.eth.Contract(
         contract["abi"],
         contract["address"]
@@ -16,90 +17,70 @@ const Patients = () => {
     const [cookies, setCookies] = useCookies();
 
     useEffect(() => {
-        async function getPatients() {
-            const pat = [];
-            const vis = [];
-            await mycontract.methods
-                .getPatient()
-                .call()
-                .then(async (res) => {
-                    console.log(res);
-                    for (let i = res.length - 1; i >= 0; i--) {
-                        const data = await (await fetch(`http://localhost:8080/ipfs/${res[i]}`)).json()
-                        const selected = data.selectedDoctors;
-                        if (!vis.includes(data.mail)) {
-                            vis.push(data.mail);
-                            for (let j = 1; j < selected.length; j++) {
-                                if (selected[j] === cookies['hash']) {
-                                    let flag = 0;
-                                    for (let k = 0; k < pat.length; k++) {
-                                        if (pat[k].mail === data.mail) {
-                                            flag = 1;
-                                            break;
-                                        }
-                                    }
-                                    if (flag === 0) {
-                                        data['hash'] = res[i];
-                                        pat.push(data);
-                                    }
-                                }
-                            }
+        const fetchPatients = async () => {
+            try {
+                const patientCIDs = await mycontract.methods.getPatient().call();
+                const patientList = [];
+                const visitedEmails = new Set();
+                
+                for (let i = patientCIDs.length - 1; i >= 0; i--) {
+                    try {
+                        const data = await getFromIPFS(patientCIDs[i]);
+                        
+                        if (!visitedEmails.has(data.mail) && 
+                            data.selectedDoctors && 
+                            data.selectedDoctors.includes(cookies['hash'])) {
+                            
+                            visitedEmails.add(data.mail);
+                            data.hash = patientCIDs[i];
+                            patientList.push(data);
                         }
+                    } catch (error) {
+                        console.error(`Error fetching patient data for CID ${patientCIDs[i]}:`, error);
                     }
-                })
-            setPatients(pat);
-        }
-        getPatients();
-        return;
-    }, [patients.length]);
-
+                }
+                
+                setPatients(patientList);
+            } catch (error) {
+                console.error("Error fetching patients:", error);
+            }
+        };
+        
+        fetchPatients();
+    }, []);
 
     function view(phash) {
-        const url = `/patientData/${phash}`
-        window.location.href = url;
+        window.location.href = `/patientData/${phash}`;
     }
 
     async function treated(phash) {
-        var accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        var currentaddress = accounts[0];
-
-        const web3 = new Web3(window.ethereum);
-        const mycontract = new web3.eth.Contract(contract['abi'], contract['address']);
-
-        const data = await (await fetch(`http://localhost:8080/ipfs/${phash}`)).json();
-        const drs = data.selectedDoctors;
-        const newList = [];
-
-        for (let i = 1; i < drs.length; i++) {
-            if (drs[i] === cookies['hash']) {
-                continue;
-            }
-            else {
-                newList.push(drs[i]);
-            }
-        }
-
-        data.selectedDoctors = newList;
-
-        let client = create();
-        client = create(new URL('http://127.0.0.1:5001'));
-        const { cid } = await client.add(JSON.stringify(data));
-        const hash = cid['_baseCache'].get('z');
-
-        await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
-            alert("Patient Removed");
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const currentaddress = accounts[0];
+            
+            const data = await getFromIPFS(phash);
+            const selectedDoctors = data.selectedDoctors || [];
+            
+            // Remove this doctor from the patient's selected doctors list
+            const newSelectedDoctors = selectedDoctors.filter(docHash => docHash !== cookies['hash']);
+            data.selectedDoctors = newSelectedDoctors;
+            
+            const newHash = await uploadJSONToPinata(data);
+            
+            await mycontract.methods.addPatient(newHash).send({ from: currentaddress });
+            alert("Patient removed from your list");
             window.location.reload();
-        }).catch((err) => {
-            console.log(err);
-        })
+        } catch (error) {
+            console.error("Error marking patient as treated:", error);
+            alert("Failed to update patient status. Please try again.");
+        }
     }
 
-
     function showPatients() {
-        return patients.map((patient) => {
-            if (patient.hasOwnProperty('name')) {
+        return patients.map((patient, index) => {
+            if (patient?.name) {
                 return (
-                    <tr>
+                    <tr key={index}>
                         <td>{patient.name}</td>
                         <td>{patient.mail}</td>
                         <td>
@@ -109,9 +90,10 @@ const Patients = () => {
                             <input type="button" value="Treated" onClick={() => treated(patient.hash)} />
                         </td>
                     </tr>
-                )
+                );
             }
-        })
+            return null;
+        });
     }
 
     return (
@@ -120,17 +102,11 @@ const Patients = () => {
                 <Sidebar2 />
             </div>
 
-            <div
-                className={
-                    "dark:bg-main-dark-bg  bg-main-bg min-h-screen ml-72 w-full  "
-                }
-            >
+            <div className="dark:bg-main-dark-bg bg-main-bg min-h-screen ml-72 w-full">
                 <div className="fixed md:static bg-main-bg dark:bg-main-dark-bg navbar w-full ">
                     <Navbar />
                 </div>
-                <div
-                    style={{ display: "flex", flexDirection: "column", padding: "1rem" }}
-                >
+                <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
                     <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
                         <table style={{ borderCollapse: "collapse" }}>
                             <thead>

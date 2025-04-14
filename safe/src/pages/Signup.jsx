@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import './Signup.css'
 import Web3 from "web3";
 import contract from '../contracts/contract.json';
-import { create } from 'ipfs-http-client'
+import { WEB3_PROVIDER } from "../config/ipfs-config";
+import { uploadJSONToPinata } from "../services/pinata-service";
 
 const Signup = () => {
     const [type, setType] = useState(false);
@@ -23,8 +24,8 @@ const Signup = () => {
         "name": "",
         "mail": "",
         "password": "",
-        license: "",
-        speciality: ""
+        "license": "",
+        "speciality": ""
     });
 
     function handle(e) {
@@ -43,47 +44,36 @@ const Signup = () => {
     }
 
     async function register(e) {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const currentaddress = accounts[0];
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const currentaddress = accounts[0];
 
-        const web3 = new Web3(window.ethereum);
-        const mycontract = new web3.eth.Contract(
-            contract["abi"],
-            contract["address"]
-        );
+            const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
+            const mycontract = new web3.eth.Contract(
+                contract["abi"],
+                contract["address"]
+            );
 
-        if (!e) {
-            // patient
-            let client = create();
-            client = create(new URL('http://127.0.0.1:5001'));
-            const { cid } = await client.add(JSON.stringify(regp));
-            const hash = cid['_baseCache'].get('z');
-            console.log(hash);
-
-            await mycontract.methods.addPatient(hash).send({ from: currentaddress }).then(() => {
-                alert("Account created");
-            }).catch((err) => {
-                console.log(err);
-            })
-        }
-        else {
-            // doctor
-            let client = create();
-            client = create(new URL('http://127.0.0.1:5001'))
-            const { cid } = await client.add(JSON.stringify(regd));
-            const hash = cid['_baseCache'].get('z');
-            console.log(hash);
-
-            await mycontract.methods.addDoctor(hash).send({ from: currentaddress }).then(() => {
-                alert("Account created");
-            }).catch((err) => {
-                console.log(err);
-            })
+            if (!e) {
+                // Register patient
+                const hash = await uploadJSONToPinata(regp);
+                await mycontract.methods.addPatient(hash).send({ from: currentaddress });
+                alert("Patient account created successfully!");
+                window.location.href = "/login";
+            } else {
+                // Register doctor
+                const hash = await uploadJSONToPinata(regd);
+                await mycontract.methods.addDoctor(hash).send({ from: currentaddress });
+                alert("Doctor account created successfully!");
+                window.location.href = "/login";
+            }
+        } catch (error) {
+            console.error("Error in registration:", error);
+            alert("Registration failed. Please try again.");
         }
     }
 
     return (
-
         <div className="login-container bg-gradient-to-r from-cyan-500 to-blue-500 via-teal-200 ">
             <form className="login-form backdrop-blur-lg
                [ p-8 md:p-10 lg:p-10 ]
@@ -116,8 +106,6 @@ const Signup = () => {
                             <h5>Email</h5>
                         </div>
                         <input onChange={(e) => handle(e)} type="mail" placeholder="youremail@gmail.com" id="email" name="mail" />
-
-
                     </div>
 
                     {type &&
@@ -145,20 +133,16 @@ const Signup = () => {
                             <h5>Password</h5>
                         </div>
                         <input onChange={(e) => handle(e)} type="password" placeholder="********" id="password" name="password" />
-
                     </div>
-
                 </div>
 
                 <input type="button" value="Sign Up" className="btn" onClick={() => { register(type) }} />
                 <p style={{ textAlign: "right" }}>Already a user?
                     <Link style={{ marginLeft: "4px", color: "black", textDecoration: "underline" }} to='/login'>Log In.</Link>
                 </p>
-
-            </form >
-        </div >
-
-    )
-}
+            </form>
+        </div>
+    );
+};
 
 export default Signup;
