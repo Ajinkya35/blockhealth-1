@@ -24,7 +24,7 @@ const Home = () => {
           <div className="logo">
             <img className="logo-img" src={logosvg} />
             <a href="#" className="nav__logo">
-              MediVault
+            BlockHealth
             </a>
           </div>
           <div className="nav__menu" id="nav-menu">
@@ -81,7 +81,7 @@ const Home = () => {
             <div className="home__data">
               <h1 className="home__title">Health Record System</h1>
               <p className="home__description">
-                MediVault is a secure blockchain based platform for storage of
+                BlockHealth is a secure blockchain based platform for storage of
                 highly sensitive and critical data related to patients that is
                 shared among multiple facilities and agencies for effective
                 diagnosis and treatment.
@@ -257,15 +257,15 @@ const Home = () => {
                 </div>
 
                 <ul className="contact__content grid">
-                    <li className="contact__address">Telephone: <span className="contact__information">+91 9129916977</span>
+                    <li className="contact__address">Telephone: <span className="contact__information">7387129294</span>
                     </li>
                     <li className="contact__address">Email: <span
-                            className="contact__information">virajchandra51@gmail.com</span></li>
-                    <li className="contact__address">Location: <span className="contact__information">NIT Raipur - Great Eastern
-                            Rd, Amanaka, Raipur, Chhattisgarh 492010</span></li>
+                            className="contact__information">MediVault2025@gmail.com</span></li>
+                    <li className="contact__address">Location: <span className="contact__information"> Vit college,
+                            Upper indira nagar,Pune 492010</span></li>
                 </ul>
                 <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14874.196331166764!2d81.6050291!3d21.2497222!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x21543965c50c43c7!2sNational%20Institute%20of%20Technology(NIT)%2C%20Raipur!5e0!3m2!1sen!2sin!4v1674894759884!5m2!1sen!2sin"
+                    src="https://www.google.co.in/maps/place/Upper+Market+Rd,+Bibwewadi,+Pune,+Maharashtra/@18.4626958,73.8648083,17z/data=!4m6!3m5!1s0x3bc2ea950065f74f:0xb5ffc3211e9a0011!8m2!3d18.4626958!4d73.8673832!16s%2Fg%2F1ydpfjxd6?entry=ttu&g_ep=EgoyMDI1MDQwOS4wIKXMDSoASAFQAw%3D%3D"
                     width="300" height="200" style={{border:"0",}} allowfullscreen="" loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
@@ -273,7 +273,7 @@ const Home = () => {
       </main>
         <footer className="footer section">
           <p className="footer__copy">
-            Design And Developed By The Blockheads
+            Design And Developed By The Unstoppable
           </p>
           <p className="footer__copy">&#169; MediVault. All right reserved</p>
         </footer>

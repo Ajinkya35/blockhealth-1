@@ -5,123 +5,75 @@ import { useCookies } from "react-cookie";
 import Navbar from "../components/Navbar";
 import Sidebar2 from "../components/Sidebar2";
 import Footer from "../components/Footer";
-import contract from "../contracts/contract.json";
 import Web3 from "web3";
-import { WEB3_PROVIDER } from "../config/ipfs-config";
 import { getFromIPFS } from "../services/pinata-service";
 
 const PatientInfo = () => {
     const { phash } = useParams();
-    const [patient, setPatient] = useState([]);
-    const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
-    const mycontract = new web3.eth.Contract(
-        contract["abi"],
-        contract["address"]
-    );
+    const [patient, setPatient] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchPatient = async () => {
             try {
+                setIsLoading(true);
+                
+                if (!phash) {
+                    throw new Error("No patient hash provided");
+                }
+                
+                console.log("Fetching patient data for hash:", phash);
+                
+                // Get patient data directly
                 const data = await getFromIPFS(phash);
-                setPatient([data]);
+                
+                if (!data) {
+                    throw new Error("Failed to retrieve patient data");
+                }
+                
+                console.log("Retrieved patient data:", data);
+                
+                // Set patient data
+                setPatient(data);
             } catch (error) {
                 console.error("Error fetching patient data:", error);
+                setError("Failed to load patient data: " + error.message);
+            } finally {
+                setIsLoading(false);
             }
         };
         
         fetchPatient();
     }, [phash]);
 
-    function showInsurance() {
-        if (patient.length > 0 && patient[0]?.insurance) {
-            return patient[0].insurance.map((d, index) => {
-                if (d?.company) {
-                    return (
-                        <tr key={index}>
-                            <td>{d.company}</td>
-                            <td>{d.policyNo}</td>
-                            <td>{d.expiry}</td>
+    const renderTable = (title, headers, data, renderRow) => {
+        return (
+            <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
+                <h1 style={{ fontSize: '2rem' }}>{title}</h1>
+                <table style={{ borderCollapse: "collapse", width: "100%", marginTop: "10px" }}>
+                    <thead>
+                        <tr>
+                            {headers.map((header, index) => (
+                                <th key={index} style={{ padding: "8px", borderBottom: "1px solid #ddd" }}>{header}</th>
+                            ))}
                         </tr>
-                    );
-                }
-                return null;
-            });
-        }
-        return null;
-    }
-
-    function showAllergies() {
-        if (patient.length > 0 && patient[0]?.allergies) {
-            return patient[0].allergies.map((d, index) => {
-                if (d?.name) {
-                    return (
-                        <tr key={index}>
-                            <td>{d.name}</td>
-                            <td>{d.type}</td>
-                            <td>{d.medication}</td>
-                        </tr>
-                    );
-                }
-                return null;
-            });
-        }
-        return null;
-    }
-
-    function showMedHistory() {
-        if (patient.length > 0 && patient[0]?.medicalhistory) {
-            return patient[0].medicalhistory.map((d, index) => {
-                if (d?.disease) {
-                    return (
-                        <tr key={index}>
-                            <td>{d.disease}</td>
-                            <td>{d.time}</td>
-                            <td>{d.solved}</td>
-                        </tr>
-                    );
-                }
-                return null;
-            });
-        }
-        return null;
-    }
-
-    function showHospHistory() {
-        if (patient.length > 0 && patient[0]?.hospitalizationhistory) {
-            return patient[0].hospitalizationhistory.map((d, index) => {
-                if (d?.datefrom) {
-                    return (
-                        <tr key={index}>
-                            <td>{d.datefrom}</td>
-                            <td>{d.dateto}</td>
-                            <td>{d.reason}</td>
-                            <td>{d.surgery}</td>
-                        </tr>
-                    );
-                }
-                return null;
-            });
-        }
-        return null;
-    }
-
-    function showCheckUpHistory() {
-        if (patient.length > 0 && patient[0]?.visit) {
-            return patient[0].visit.map((d, index) => {
-                if (d?.name) {
-                    return (
-                        <tr key={index}>
-                            <td>{d.name}</td>
-                            <td>{d.date}</td>
-                            <td>{d.reason}</td>
-                        </tr>
-                    );
-                }
-                return null;
-            });
-        }
-        return null;
-    }
+                    </thead>
+                    <tbody>
+                        {data && data.length > 0 ? (
+                            data.map((item, index) => renderRow(item, index))
+                        ) : (
+                            <tr>
+                                <td colSpan={headers.length} style={{ textAlign: "center", padding: "8px" }}>
+                                    No records found
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
 
     return (
         <div className="flex relative dark:bg-main-dark-bg">
@@ -133,84 +85,98 @@ const PatientInfo = () => {
                 <div className="fixed md:static bg-main-bg dark:bg-main-dark-bg navbar w-full ">
                     <Navbar />
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
+                
+                {isLoading ? (
+                    <div className="p-4">Loading patient data...</div>
+                ) : error ? (
+                    <div className="p-4 text-red-500">{error}</div>
+                ) : patient ? (
                     <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
-                        <h1 style={{ fontSize: '2rem' }}>Insurance</h1>
-                        <table style={{ borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr>
-                                    <th className="">Company</th>
-                                    <th className="">Policy No.</th>
-                                    <th className="">Expiry</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {showInsurance()}
-                            </tbody>
-                        </table>
+                        <div className="p-4 mb-4 bg-blue-50 rounded-lg">
+                            <h1 className="text-xl font-bold mb-2">Patient: {patient.name}</h1>
+                            <p className="text-gray-600">Email: {patient.mail}</p>
+                        </div>
+                        
+                        {renderTable(
+                            "Insurance",
+                            ["Company", "Policy No.", "Expiry"],
+                            patient.insurance,
+                            (item, index) => (
+                                item.company && (
+                                    <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                        <td style={{ padding: "8px" }}>{item.company}</td>
+                                        <td style={{ padding: "8px" }}>{item.policyNo}</td>
+                                        <td style={{ padding: "8px" }}>{item.expiry}</td>
+                                    </tr>
+                                )
+                            )
+                        )}
+                        
+                        {renderTable(
+                            "Allergies",
+                            ["Name", "Type", "Medication"],
+                            patient.allergies,
+                            (item, index) => (
+                                item.name && (
+                                    <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                        <td style={{ padding: "8px" }}>{item.name}</td>
+                                        <td style={{ padding: "8px" }}>{item.type}</td>
+                                        <td style={{ padding: "8px" }}>{item.medication}</td>
+                                    </tr>
+                                )
+                            )
+                        )}
+                        
+                        {renderTable(
+                            "Medical History",
+                            ["Disease", "Diagnosed Date", "Status"],
+                            patient.medicalhistory,
+                            (item, index) => (
+                                item.disease && (
+                                    <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                        <td style={{ padding: "8px" }}>{item.disease}</td>
+                                        <td style={{ padding: "8px" }}>{item.time}</td>
+                                        <td style={{ padding: "8px" }}>{item.solved}</td>
+                                    </tr>
+                                )
+                            )
+                        )}
+                        
+                        {renderTable(
+                            "Hospitalization History",
+                            ["Admitted On", "Discharged On", "Reason", "Surgery"],
+                            patient.hospitalizationhistory,
+                            (item, index) => (
+                                item.datefrom && (
+                                    <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                        <td style={{ padding: "8px" }}>{item.datefrom}</td>
+                                        <td style={{ padding: "8px" }}>{item.dateto}</td>
+                                        <td style={{ padding: "8px" }}>{item.reason}</td>
+                                        <td style={{ padding: "8px" }}>{item.surgery}</td>
+                                    </tr>
+                                )
+                            )
+                        )}
+                        
+                        {renderTable(
+                            "Checkup History",
+                            ["Name Of Professional", "Date Of Visit", "Reason"],
+                            patient.visit,
+                            (item, index) => (
+                                item.name && (
+                                    <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                        <td style={{ padding: "8px" }}>{item.name}</td>
+                                        <td style={{ padding: "8px" }}>{item.date}</td>
+                                        <td style={{ padding: "8px" }}>{item.reason}</td>
+                                    </tr>
+                                )
+                            )
+                        )}
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
-                        <h1 style={{ fontSize: '2rem' }}>Allergies</h1>
-                        <table style={{ borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr>
-                                    <th className="">Name</th>
-                                    <th className="">Type</th>
-                                    <th className="">Medication</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {showAllergies()}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
-                        <h1 style={{ fontSize: '2rem' }}>Medical History</h1>
-                        <table style={{ borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr>
-                                    <th className="">Disease</th>
-                                    <th className="">Diagnosed Date</th>
-                                    <th className="">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {showMedHistory()}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
-                        <h1 style={{ fontSize: '2rem' }}>Hospitalization History</h1>
-                        <table style={{ borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr>
-                                    <th className="">Admitted On</th>
-                                    <th className="">Discharged On</th>
-                                    <th className="">Reason</th>
-                                    <th className="">Surgery</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {showHospHistory()}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
-                        <h1 style={{ fontSize: '2rem' }}>Checkup History</h1>
-                        <table style={{ borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr>
-                                    <th className="">Name Of Professional</th>
-                                    <th className="">Date Of Visit</th>
-                                    <th className="">Reason?</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {showCheckUpHistory()}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                ) : (
+                    <div className="p-4">No patient data found</div>
+                )}
+                
                 <Footer />
             </div>
         </div>
