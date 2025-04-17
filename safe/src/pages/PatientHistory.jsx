@@ -8,79 +8,80 @@ import { useCookies } from "react-cookie";
 import { getFromIPFS } from "../services/pinata-service";
 
 const PatientHistory = () => {
-    const [cookies, setCookies] = useCookies(['hash', 'treatedPatients']);
-    const [treatedPatients, setTreatedPatients] = useState([]);
+    const [cookies, setCookies] = useCookies(['hash']);
+    const [treatmentHistory, setTreatmentHistory] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [currentAccount, setCurrentAccount] = useState("");
-    const [showPatientDetails, setShowPatientDetails] = useState(false);
-    const [selectedPatient, setSelectedPatient] = useState(null);
-
+    const [sortBy, setSortBy] = useState("date"); // Default sort by date
+    
     useEffect(() => {
-        const init = async () => {
+        const fetchTreatmentHistory = async () => {
             try {
-                await connectWallet();
-                fetchTreatedPatients();
-            } catch (err) {
-                console.error("Initialization error:", err);
-                setError("Failed to initialize. Please check your connection.");
+                setIsLoading(true);
+                
+                if (!cookies['hash']) {
+                    setError("Your session data couldn't be found. Please log in again.");
+                    return;
+                }
+                
+                // Get doctor data
+                const data = await getFromIPFS(cookies['hash']);
+                
+                if (!data) {
+                    throw new Error("Failed to retrieve doctor data");
+                }
+                
+                // Get treatment history
+                const history = data.treatmentHistory || [];
+                
+                // Sort treatment history based on selected criteria
+                sortHistoryList(history);
+                
+                setTreatmentHistory(history);
+            } catch (error) {
+                console.error("Error fetching treatment history:", error);
+                setError("Failed to load treatment history: " + error.message);
             } finally {
                 setIsLoading(false);
             }
         };
         
-        init();
-    }, []);
-
-    const connectWallet = async () => {
-        try {
-            if (!window.ethereum) {
-                throw new Error("MetaMask not installed");
-            }
-            
-            const accounts = await window.ethereum.request({
-                method: "eth_requestAccounts",
-            });
-            
-            if (accounts.length === 0) {
-                throw new Error("No accounts found");
-            }
-            
-            setCurrentAccount(accounts[0]);
-            return accounts[0];
-        } catch (error) {
-            console.error("Wallet connection error:", error);
-            setError("Failed to connect wallet: " + error.message);
-            throw error;
+        fetchTreatmentHistory();
+    }, [cookies, sortBy]);
+    
+    // Function to sort treatment history
+    const sortHistoryList = (historyList) => {
+        switch(sortBy) {
+            case "date":
+                // Sort by treatment date (most recent first)
+                return historyList.sort((a, b) => new Date(b.treatmentDate) - new Date(a.treatmentDate));
+            case "name":
+                // Sort alphabetically by patient name
+                return historyList.sort((a, b) => a.patientName.localeCompare(b.patientName));
+            default:
+                return historyList;
         }
     };
-
-    const fetchTreatedPatients = () => {
-        try {
-            // Get treated patients from cookies
-            const treatedPatientsList = cookies.treatedPatients || [];
-            setTreatedPatients(treatedPatientsList);
-        } catch (error) {
-            console.error("Error fetching treated patients:", error);
-            setError("Failed to load treated patients history");
-        }
+    
+    // Function to handle sort change
+    const handleSortChange = (newSortBy) => {
+        setSortBy(newSortBy);
     };
-
-    const viewDetails = (patient) => {
-        setSelectedPatient(patient);
-        setShowPatientDetails(true);
-    };
-
-    const closePatientDetails = () => {
-        setSelectedPatient(null);
-        setShowPatientDetails(false);
-    };
-
+    
+    // Format date for display
     const formatDate = (dateString) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString(undefined, options);
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString("en-US", {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch (e) {
+            return dateString;
+        }
     };
-
+    
     return (
         <div className="flex relative dark:bg-main-dark-bg">
             <div className="w-72 fixed sidebar dark:bg-secondary-dark-bg bg-white ">
@@ -93,135 +94,63 @@ const PatientHistory = () => {
                 </div>
                 
                 <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
-                    <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Patient Treatment History</h2>
+                    <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Patient Treatment History</h1>
                     
                     {isLoading ? (
                         <div className="p-4">Loading treatment history...</div>
                     ) : error ? (
                         <div className="p-4 text-red-500">{error}</div>
-                    ) : treatedPatients.length === 0 ? (
-                        <div className="p-4">No treatment history found. Patients marked as treated will appear here.</div>
                     ) : (
                         <div style={{ display: "flex", flexDirection: "column", padding: "1rem" }}>
-                            <table style={{ borderCollapse: "collapse", width: "100%" }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Patient Name</th>
-                                        <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Email</th>
-                                        <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Treatment Date</th>
-                                        <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Reason</th>
-                                        <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {treatedPatients.map((patient, index) => (
-                                        <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                            <td style={{ padding: "8px" }}>{patient.name}</td>
-                                            <td style={{ padding: "8px" }}>{patient.mail}</td>
-                                            <td style={{ padding: "8px" }}>{formatDate(patient.treatmentDate)}</td>
-                                            <td style={{ padding: "8px" }}>{patient.reason || "General checkup"}</td>
-                                            <td style={{ padding: "8px" }}>
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => viewDetails(patient)}
-                                                    style={{ 
-                                                        padding: "5px 10px", 
-                                                        backgroundColor: "#4285F4", 
-                                                        color: "white", 
-                                                        border: "none", 
-                                                        borderRadius: "5px", 
-                                                        cursor: "pointer" 
-                                                    }}
-                                                >
-                                                    View Details
-                                                </button>
-                                            </td>
+                            {/* Sort Controls */}
+                            <div style={{ marginBottom: "20px", display: "flex", alignItems: "center" }}>
+                                <span style={{ marginRight: "10px", fontWeight: "bold" }}>Sort by:</span>
+                                <select 
+                                    value={sortBy}
+                                    onChange={(e) => handleSortChange(e.target.value)}
+                                    style={{
+                                        padding: "5px 10px",
+                                        borderRadius: "4px",
+                                        border: "1px solid #ddd"
+                                    }}
+                                >
+                                    <option value="date">Treatment Date</option>
+                                    <option value="name">Patient Name</option>
+                                </select>
+                            </div>
+                            
+                            {treatmentHistory.length === 0 ? (
+                                <div className="p-4 text-center">No treatment history found</div>
+                            ) : (
+                                <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                                    <thead>
+                                        <tr>
+                                            <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Patient Name</th>
+                                            <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Email</th>
+                                            <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Treatment Date</th>
+                                            <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Appointment Info</th>
+                                            <th style={{ padding: "8px", borderBottom: "1px solid #ddd", textAlign: "left" }}>Notes</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {treatmentHistory.map((record, index) => (
+                                            <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                                <td style={{ padding: "8px" }}>{record.patientName}</td>
+                                                <td style={{ padding: "8px" }}>{record.patientEmail}</td>
+                                                <td style={{ padding: "8px" }}>{formatDate(record.treatmentDate)}</td>
+                                                <td style={{ padding: "8px" }}>{record.appointmentInfo}</td>
+                                                <td style={{ padding: "8px" }}>{record.notes}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
                     )}
                 </div>
                 
                 <Footer />
             </div>
-
-            {/* Patient Details Modal */}
-            {showPatientDetails && selectedPatient && (
-                <div style={{
-                    position: "fixed",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: "rgba(0,0,0,0.5)",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        backgroundColor: "white",
-                        borderRadius: "8px",
-                        padding: "15px",
-                        width: "500px",
-                        maxWidth: "90%",
-                        maxHeight: "80vh",
-                        overflowY: "auto",
-                        boxShadow: "0 4px 8px rgba(0,0,0,0.2)"
-                    }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                            <h2 style={{ fontSize: "1.2rem", color: "#008B8B", margin: 0 }}>
-                                Patient Treatment Details
-                            </h2>
-                            <button 
-                                onClick={closePatientDetails}
-                                style={{ 
-                                    background: "none", 
-                                    border: "none", 
-                                    fontSize: "1.5rem", 
-                                    cursor: "pointer" 
-                                }}
-                            >
-                                &times;
-                            </button>
-                        </div>
-                        
-                        <hr style={{ margin: "0 0 10px 0" }} />
-                        
-                        <div style={{ marginBottom: "20px" }}>
-                            <h3 style={{ fontSize: "1.1rem", marginBottom: "10px" }}>Patient Information</h3>
-                            <p><strong>Name:</strong> {selectedPatient.name}</p>
-                            <p><strong>Email:</strong> {selectedPatient.mail}</p>
-                            <p><strong>Treatment Date:</strong> {formatDate(selectedPatient.treatmentDate)}</p>
-                        </div>
-
-                        <div style={{ marginBottom: "20px" }}>
-                            <h3 style={{ fontSize: "1.1rem", marginBottom: "10px" }}>Treatment Details</h3>
-                            <p><strong>Reason:</strong> {selectedPatient.reason || "General checkup"}</p>
-                            <p><strong>Notes:</strong> {selectedPatient.notes || "No notes provided"}</p>
-                        </div>
-                        
-                        <button 
-                            onClick={closePatientDetails}
-                            style={{ 
-                                width: "100%",
-                                padding: "8px",
-                                backgroundColor: "#008B8B",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "0.9rem",
-                                marginTop: "10px"
-                            }}
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

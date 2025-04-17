@@ -6,6 +6,7 @@ import { TooltipComponent } from '@syncfusion/ej2-react-popups';
 import { Navbar, Footer, Sidebar, ThemeSettings } from './components';
 import { Home, MyProfile, MyProfileDoc, Doctors, Visits, Patients, MedicalHistory, HospitalizationHistory, Insurance, Allergies, PredictDisease, Login, Signup } from './pages';
 import PatientInfo from './pages/PatientInfo';
+import PatientHistory from './pages/PatientHistory'; // Adjust the path as needed
 import './App.css';
 
 import { useStateContext } from './contexts/ContextProvider';
@@ -42,7 +43,11 @@ const App = () => {
                 <Route path="/checkuphistory" element={<Visits />} />
                 <Route path="/doctors" element={<Doctors />} />
                 <Route path="/patients" element={<Patients />} />
+                
                 <Route exact path="/patientData/:phash" element={<PatientInfo />} />
+                <Route path="/patienthistory" element={<PatientHistory />} />
+                
+                // In App.js, add the new route
 
               </Routes>
       </BrowserRouter>

@@ -10,6 +10,7 @@ import { getFromIPFS } from "../services/pinata-service";
 const Login = () => {
     const [type, setType] = useState(false);
     const [cookies, setCookie] = useCookies([]);
+    const [emailError, setEmailError] = useState('');
 
     const [log, setLog] = useState({
         mail: "",
@@ -22,13 +23,35 @@ const Login = () => {
         contract["address"]
     );
 
+    // Email validation function
+    const validateEmail = (email) => {
+        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    };
+
     function handle(e) {
         const newData = { ...log };
         newData[e.target.name] = e.target.value;
+        
+        // Email validation
+        if (e.target.name === 'mail') {
+            if (!validateEmail(e.target.value) && e.target.value !== '') {
+                setEmailError('Please enter a valid email address');
+            } else {
+                setEmailError('');
+            }
+        }
+        
         setLog(newData);
     }
 
     async function login(e) {
+        // Validate email before proceeding
+        if (!validateEmail(log.mail)) {
+            setEmailError('Please enter a valid email address');
+            return;
+        }
+        
         await window.ethereum.request({
             method: "eth_requestAccounts",
         });
@@ -117,6 +140,7 @@ const Login = () => {
                             id="email"
                             name="mail"
                         />
+                        {emailError && <p style={{ color: 'red', fontSize: '0.8rem', margin: '5px 0 0 0' }}>{emailError}</p>}
                     </div>
                     <div className="input-div">
                         <div className="input-heading">

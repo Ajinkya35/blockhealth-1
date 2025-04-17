@@ -1,8 +1,7 @@
 import React from 'react';
 import { BsCurrencyDollar } from 'react-icons/bs';
 import { CgProfile } from 'react-icons/cg';
-import { MdOutlineMedicalServices } from 'react-icons/md';
-
+import { MdOutlineMedicalServices, MdHistory } from 'react-icons/md';
 
 export const links = [
   {
@@ -20,6 +19,10 @@ export const links = [
       {
         name: 'patients',
         icon: <MdOutlineMedicalServices />,
+      },
+      {
+        name: 'patient history',
+        icon: <MdHistory />,
       },
     ],
   },

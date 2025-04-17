@@ -222,6 +222,52 @@ const Patients = () => {
                 throw new Error("Failed to retrieve patient data");
             }
             
+            // Get doctor data to update treatment history
+            const doctorCIDs = await mycontract.methods.getDoctor().call();
+            let doctorData = null;
+            
+            for (let i = doctorCIDs.length - 1; i >= 0; i--) {
+                if (doctorCIDs[i] === cookies['hash']) {
+                    doctorData = await getFromIPFS(doctorCIDs[i]);
+                    break;
+                }
+            }
+            
+            if (!doctorData) {
+                throw new Error("Failed to retrieve doctor data");
+            }
+            
+            // Add to doctor's treatment history
+            const treatmentHistory = doctorData.treatmentHistory || [];
+            const currentDate = new Date().toISOString().split('T')[0];
+            
+            // Get current appointment info if available
+            let appointmentInfo = "No appointment data";
+            if (data.appointments && data.appointments.length > 0) {
+                const doctorAppointments = data.appointments.filter(app => app.doctorHash === cookies['hash']);
+                if (doctorAppointments.length > 0) {
+                    appointmentInfo = `${doctorAppointments[0].date} at ${doctorAppointments[0].time}`;
+                }
+            }
+            
+            treatmentHistory.push({
+                patientName: data.name,
+                patientEmail: data.mail,
+                patientHash: phash,
+                treatmentDate: currentDate,
+                appointmentInfo: appointmentInfo,
+                notes: "Patient treated"
+            });
+            
+            doctorData.treatmentHistory = treatmentHistory;
+            
+            // Upload updated doctor data
+            const newDoctorHash = await uploadJSONToPinata(doctorData);
+            await mycontract.methods.addDoctor(newDoctorHash).send({ from: address, gas: 200000 });
+            
+            // Also update cookies for doctor
+            setCookies('hash', newDoctorHash, { path: '/' });
+            
             // Remove this doctor from the patient's selected doctors list
             const selectedDoctors = data.selectedDoctors || [];
             const newSelectedDoctors = selectedDoctors.filter(docHash => docHash !== cookies['hash']);
@@ -239,7 +285,7 @@ const Patients = () => {
             
             console.log("Updating patient data with:", data);
             
-            // Upload updated data
+            // Upload updated patient data
             const newHash = await uploadJSONToPinata(data);
             
             console.log("New IPFS hash:", newHash);
@@ -252,7 +298,7 @@ const Patients = () => {
             
             console.log("Transaction result:", result);
             
-            alert("Patient marked as treated");
+            alert("Patient marked as treated and added to history");
             
             // Refresh patients list
             fetchPatients();
@@ -262,7 +308,8 @@ const Patients = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    
+};
 
     // Function to get priority color
     const getPriorityColor = (priority) => {
