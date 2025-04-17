@@ -1,21 +1,23 @@
 const fs = require('fs');
 const Web3 = require('web3');
+require('dotenv').config();
 
-// Path to compiled contract artifacts - using relative paths instead of absolute
+// Path to compiled contract artifacts
 const abi = JSON.parse(fs.readFileSync("./contracts/Cruds.abi"));
 const bytecode = fs.readFileSync("./contracts/Cruds.bin").toString();
 
-// Connect to local Ethereum network (Ganache) - update port to 7545
-const web3 = new Web3(new Web3.providers.HttpProvider("HTTP://127.0.0.1:7545"));
+// Connect to Sepolia via Infura
+const web3 = new Web3(new Web3.providers.HttpProvider(
+  'https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}'
+));
+
+// Import wallet using private key from env
+const account = web3.eth.accounts.privateKeyToAccount('0x${process.env.PRIVATE_KEY}');
+web3.eth.accounts.wallet.add(account);
+const deployerAccount = account.address;
 
 async function deploy() {
   try {
-    // Get list of accounts from Ganache
-    const accounts = await web3.eth.getAccounts();
-    console.log('Available accounts:', accounts);
-    
-    // Use the first account for deployment
-    const deployerAccount = accounts[0];
     console.log('Using account for deployment:', deployerAccount);
     
     // Create contract instance
@@ -23,13 +25,13 @@ async function deploy() {
     
     // Deploy the contract
     const deployTx = contract.deploy({
-      data: '0x' + bytecode // Make sure to add '0x' prefix if not already in the bytecode
+      data: '0x' + bytecode
     });
     
     // Send the deployment transaction
     const deployedContract = await deployTx.send({
       from: deployerAccount,
-      gas: 6721975,
+      gas: 3000000,
     });
     
     // Log the contract address

@@ -46,7 +46,7 @@ const Signup = () => {
 
             // Check if we're authorized to access the user's wallet
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-            
+
             if (accounts.length !== 0) {
                 const account = accounts[0];
                 console.log("Found an authorized account:", account);
@@ -74,7 +74,7 @@ const Signup = () => {
             console.log("Connected to account:", accounts[0]);
             setCurrentAccount(accounts[0]);
             setIsConnected(true);
-            
+
             return accounts[0];
         } catch (error) {
             console.error("Error connecting to MetaMask:", error);
@@ -99,7 +99,7 @@ const Signup = () => {
         const newData2 = { ...regd };
         newData1[e.target.name] = e.target.value;
         newData2[e.target.name] = e.target.value;
-        
+
         // Email validation
         if (e.target.name === 'mail') {
             if (!validateEmail(e.target.value) && e.target.value !== '') {
@@ -108,7 +108,7 @@ const Signup = () => {
                 setEmailError('');
             }
         }
-        
+
         setRegp(newData1);
         setRegd(newData2);
     }
@@ -127,7 +127,7 @@ const Signup = () => {
                 setEmailError('Please enter a valid email address');
                 return;
             }
-            
+
             // Make sure user is connected to MetaMask
             let currentAddress = currentAccount;
             if (!isConnected) {
@@ -137,36 +137,36 @@ const Signup = () => {
 
             // Initialize Web3 with the browser provider (MetaMask)
             const web3 = new Web3(window.ethereum);
-            
+
             // Validate contract address
             if (!web3.utils.isAddress(contract.address)) {
                 console.error("Invalid contract address:", contract.address);
                 alert("Invalid contract configuration. Please contact support.");
                 return;
             }
-            
+
             // Create contract instance
             const mycontract = new web3.eth.Contract(
                 contract.abi,
                 contract.address
             );
-            
+
             console.log("User type:", type ? "Doctor" : "Patient");
-            
+
             if (!type) {
                 // Register patient
                 console.log("Registering patient...");
                 console.log("Patient data:", regp);
-                
+
                 const hash = await uploadJSONToPinata(regp);
                 console.log("IPFS hash:", hash);
-                
+
                 // Call contract method
-                const result = await mycontract.methods.addPatient(hash).send({ 
+                const result = await mycontract.methods.addPatient(hash).send({
                     from: currentAddress,
                     gas: 200000 // Specify gas limit
                 });
-                
+
                 console.log("Transaction result:", result);
                 alert("Patient account created successfully!");
                 window.location.href = "/login";
@@ -174,23 +174,23 @@ const Signup = () => {
                 // Register doctor
                 console.log("Registering doctor...");
                 console.log("Doctor data:", regd);
-                
+
                 const hash = await uploadJSONToPinata(regd);
                 console.log("IPFS hash:", hash);
-                
+
                 // Call contract method
-                const result = await mycontract.methods.addDoctor(hash).send({ 
+                const result = await mycontract.methods.addDoctor(hash).send({
                     from: currentAddress,
                     gas: 200000 // Specify gas limit
                 });
-                
+
                 console.log("Transaction result:", result);
                 alert("Doctor account created successfully!");
                 window.location.href = "/login";
             }
         } catch (error) {
             console.error("Error in registration:", error);
-            
+
             // More specific error messages based on error type
             if (error.code === 4001) {
                 alert("Transaction rejected by user.");
@@ -215,8 +215,8 @@ const Signup = () => {
                 {!isConnected && (
                     <div className="metamask-warning">
                         <p>Please connect to MetaMask to register</p>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={connectWallet}
                             className="connect-btn"
                             style={{
@@ -233,7 +233,7 @@ const Signup = () => {
                         </button>
                     </div>
                 )}
-                
+
                 {isConnected && (
                     <div className="metamask-status">
                         <p style={{ fontSize: "0.8rem", color: "green" }}>
@@ -241,7 +241,7 @@ const Signup = () => {
                         </p>
                     </div>
                 )}
-                
+
                 <div className="input-container">
                     <div className="input-div">
                         <div className="input-heading">
@@ -254,7 +254,7 @@ const Signup = () => {
                         <div className="input-heading" style={{ margin: "1rem 0", }}>
                             <i className="fas fa-key"></i>
                             <h5>User Type</h5>
-                            <select id="user-type" name="type" onChange={() => { setType(!type) }} style={{padding:'0.5rem', backgroundColor:'white'}}>
+                            <select id="user-type" name="type" onChange={() => { setType(!type) }} style={{ padding: '0.5rem', backgroundColor: 'white' }}>
                                 <option value="patient">Patient</option>
                                 <option value="doctor">Doctor</option>
                             </select>

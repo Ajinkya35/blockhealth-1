@@ -1,0 +1,144 @@
+src/pages/Visit.jsx
+  Line 1:44:     Strings must use singlequote                                                                                        quotes
+  Line 2:18:     Strings must use singlequote                                                                                        quotes
+  Line 3:20:     Strings must use singlequote                                                                                        quotes
+  Line 4:20:     Strings must use singlequote                                                                                        quotes
+  Line 5:21:     Strings must use singlequote                                                                                        quotes
+  Line 6:22:     Strings must use singlequote                                                                                        quotes
+  Line 7:1:      `react-cookie` import should occur before import of `../components/Navbar`                                          import/order
+  Line 7:28:     Strings must use singlequote                                                                                        quotes
+  Line 8:49:     Strings must use singlequote                                                                                        quotes
+  Line 15:56:    Strings must use singlequote                                                                                        quotes
+  Line 18:11:    Strings must use singlequote                                                                                        quotes
+  Line 19:11:    Strings must use singlequote                                                                                        quotes
+  Line 20:13:    Strings must use singlequote                                                                                        quotes
+  Line 26:15:    'connectWallet' was used before it was defined                                                                      no-use-before-define
+  Line 27:15:    'fetchVisits' was used before it was defined                                                                        no-use-before-define
+  Line 29:23:    Strings must use singlequote                                                                                        quotes
+  Line 30:18:    Strings must use singlequote                                                                                        quotes
+  Line 35:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 42:25:    Strings must use singlequote                                                                                        quotes
+  Line 44:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 46:17:    Strings must use singlequote                                                                                        quotes
+  Line 48:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 50:25:    Strings must use singlequote                                                                                        quotes
+  Line 52:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 54:19:    Strings must use singlequote                                                                                        quotes
+  Line 56:14:    'error' is already declared in the upper scope on line 14 column 10                                                 no-shadow
+  Line 57:21:    Strings must use singlequote                                                                                        quotes
+  Line 58:16:    Unexpected string concatenation                                                                                     prefer-template
+  Line 58:16:    Strings must use singlequote                                                                                        quotes
+  Line 65:20:    ["hash"] is better written in dot notation                                                                          dot-notation
+  Line 66:22:    Strings must use singlequote                                                                                        quotes
+  Line 70:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 71:19:    Strings must use singlequote                                                                                        quotes
+  Line 71:61:    ["hash"] is better written in dot notation                                                                          dot-notation
+  Line 72:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 75:13:    'mycontract' is assigned a value but never used                                                                     no-unused-vars
+  Line 76:18:    ["abi"] is better written in dot notation                                                                           dot-notation
+  Line 76:18:    Strings must use singlequote                                                                                        quotes
+  Line 77:18:    ["address"] is better written in dot notation                                                                       dot-notation
+  Line 77:18:    Strings must use singlequote                                                                                        quotes
+  Line 77:28:    Missing trailing comma                                                                                              comma-dangle
+  Line 79:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 81:46:    ["hash"] is better written in dot notation                                                                          dot-notation
+  Line 82:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 84:25:    Strings must use singlequote                                                                                        quotes
+  Line 86:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 87:19:    Strings must use singlequote                                                                                        quotes
+  Line 88:1:     Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 91:14:    'error' is already declared in the upper scope on line 14 column 10                                                 no-shadow
+  Line 92:21:    Strings must use singlequote                                                                                        quotes
+  Line 93:16:    Unexpected string concatenation                                                                                     prefer-template
+  Line 93:16:    Strings must use singlequote                                                                                        quotes
+  Line 106:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 109:15:   Strings must use singlequote                                                                                        quotes
+  Line 112:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 115:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 119:18:   ["abi"] is better written in dot notation                                                                           dot-notation
+  Line 119:18:   Strings must use singlequote                                                                                        quotes
+  Line 120:18:   ["address"] is better written in dot notation                                                                       dot-notation
+  Line 120:18:   Strings must use singlequote                                                                                        quotes
+  Line 120:28:   Missing trailing comma                                                                                              comma-dangle
+  Line 122:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 123:20:   ["hash"] is better written in dot notation                                                                          dot-notation
+  Line 124:15:   Strings must use singlequote                                                                                        quotes
+  Line 127:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 129:46:   ["hash"] is better written in dot notation                                                                          dot-notation
+  Line 130:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 132:25:   Strings must use singlequote                                                                                        quotes
+  Line 134:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 138:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 139:19:   Strings must use singlequote                                                                                        quotes
+  Line 140:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 143:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 144:19:   Strings must use singlequote                                                                                        quotes
+  Line 145:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 147:70:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 149:20:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 149:20:   Missing trailing comma                                                                                              comma-dangle
+  Line 151:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 152:19:   Strings must use singlequote                                                                                        quotes
+  Line 153:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 156:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 157:13:   Strings must use singlequote                                                                                        quotes
+  Line 158:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 161:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 164:15:   Strings must use singlequote                                                                                        quotes
+  Line 165:15:   Strings must use singlequote                                                                                        quotes
+  Line 166:17:   Strings must use singlequote                                                                                        quotes
+  Line 168:14:   'error' is already declared in the upper scope on line 14 column 10                                                 no-shadow
+  Line 169:21:   Strings must use singlequote                                                                                        quotes
+  Line 170:13:   Unexpected string concatenation                                                                                     prefer-template
+  Line 170:13:   Strings must use singlequote                                                                                        quotes
+  Line 186:1:    Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 187:32:   Strings must use singlequote                                                                                        quotes
+  Line 187:55:   Strings must use singlequote                                                                                        quotes
+  Line 187:74:   Strings must use singlequote                                                                                        quotes
+  Line 187:98:   Strings must use singlequote                                                                                        quotes
+  Line 187:120:  Strings must use singlequote                                                                                        quotes
+  Line 187:137:  Strings must use singlequote                                                                                        quotes
+  Line 188:12:   Do not nest ternary expressions                                                                                     no-nested-ternary
+  Line 191:34:   Strings must use singlequote                                                                                        quotes
+  Line 194:37:   Strings must use singlequote                                                                                        quotes
+  Line 195:49:   Strings must use singlequote                                                                                        quotes
+  Line 195:68:   Strings must use singlequote                                                                                        quotes
+  Line 206:61:   Strings must use singlequote                                                                                        quotes
+  Line 224:33:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 225:41:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 233:34:   Missing trailing comma                                                                                              comma-dangle
+  Line 234:17:   The closing bracket must be aligned with the line containing the opening tag (expected column 15 on the next line)  react/jsx-closing-bracket-location
+  Line 235:37:   Strings must use singlequote                                                                                        quotes
+  Line 235:54:   Strings must use singlequote                                                                                        quotes
+  Line 243:37:   Strings must use singlequote                                                                                        quotes
+  Line 243:51:   Strings must use singlequote                                                                                        quotes
+  Line 243:73:   Strings must use singlequote                                                                                        quotes
+  Line 243:88:   Strings must use singlequote                                                                                        quotes
+  Line 252:37:   Strings must use singlequote                                                                                        quotes
+  Line 252:51:   Strings must use singlequote                                                                                        quotes
+  Line 252:73:   Strings must use singlequote                                                                                        quotes
+  Line 252:88:   Strings must use singlequote                                                                                        quotes
+  Line 261:37:   Strings must use singlequote                                                                                        quotes
+  Line 261:51:   Strings must use singlequote                                                                                        quotes
+  Line 261:73:   Strings must use singlequote                                                                                        quotes
+  Line 261:88:   Strings must use singlequote                                                                                        quotes
+  Line 263:24:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 264:32:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 267:27:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 268:30:   Strings must use singlequote                                                                                        quotes
+  Line 268:42:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 269:38:   Strings must use singlequote                                                                                        quotes
+  Line 269:48:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 270:28:   Strings must use singlequote                                                                                        quotes
+  Line 270:36:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 271:29:   Strings must use singlequote                                                                                        quotes
+  Line 271:36:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 272:35:   Strings must use singlequote                                                                                        quotes
+  Line 272:41:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 273:29:   Strings must use singlequote                                                                                        quotes
+  Line 274:28:   Strings must use singlequote                                                                                        quotes
+  Line 274:34:   Trailing spaces not allowed                                                                                         no-trailing-spaces
+  Line 274:34:   Missing trailing comma                                                                                              comma-dangle
+  Line 277:32:   Strings must use singlequote                                                                                        quotes
+  Line 277:46:   Strings must use singlequote                                                                                        quotes
+  Line 289:23:   Newline required at end of file but not found                                                                       eol-last

@@ -17,7 +17,9 @@ const Login = () => {
         password: ""
     });
 
-    const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
+    const web3 = window.ethereum ? 
+    new Web3(window.ethereum) : 
+    new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
     const mycontract = new web3.eth.Contract(
         contract["abi"],
         contract["address"]
