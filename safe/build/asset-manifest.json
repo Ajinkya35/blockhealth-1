@@ -1,0 +1,23 @@
+{
+  "files": {
+    "main.css": "/static/css/main.3a718d57.css",
+    "main.js": "/static/js/main.cb4712df.js",
+    "static/media/2.png": "/static/media/2.69898bca4a1b4ab8789f.png",
+    "static/media/1.png": "/static/media/1.d6956b242945871d91cb.png",
+    "static/media/stethoscope.png": "/static/media/stethoscope.85b25cb066a3d6f6ab9d.png",
+    "static/media/disease.png": "/static/media/disease.a4d04950ca2b22dee096.png",
+    "static/media/logo.png": "/static/media/logo.342e9da09b11fd95372e.png",
+    "static/media/doc.svg": "/static/media/doc.f3c818f0ba35e11aa421f440acc88680.svg",
+    "static/media/user.svg": "/static/media/user.7491ba8c391a2ecfa0638b1a14d0110f.svg",
+    "static/media/tick.svg": "/static/media/tick.53a270658d99466d4e0252cc5b59991d.svg",
+    "static/media/logo.svg": "/static/media/logo.616deb608c6db12ac2d4d6b1911423f9.svg",
+    "index.html": "/index.html",
+    "static/media/upload.svg": "/static/media/upload.63fb93b48572341fbff8990acac0088e.svg",
+    "main.3a718d57.css.map": "/static/css/main.3a718d57.css.map",
+    "main.cb4712df.js.map": "/static/js/main.cb4712df.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.3a718d57.css",
+    "static/js/main.cb4712df.js"
+  ]
+}

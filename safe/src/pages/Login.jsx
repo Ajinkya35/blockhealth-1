@@ -17,9 +17,9 @@ const Login = () => {
         password: ""
     });
 
-    const web3 = window.ethereum ? 
-    new Web3(window.ethereum) : 
-    new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
+    const web3 = window.ethereum ?
+        new Web3(window.ethereum) :
+        new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER));
     const mycontract = new web3.eth.Contract(
         contract["abi"],
         contract["address"]
@@ -34,7 +34,7 @@ const Login = () => {
     function handle(e) {
         const newData = { ...log };
         newData[e.target.name] = e.target.value;
-        
+
         // Email validation
         if (e.target.name === 'mail') {
             if (!validateEmail(e.target.value) && e.target.value !== '') {
@@ -43,7 +43,7 @@ const Login = () => {
                 setEmailError('');
             }
         }
-        
+
         setLog(newData);
     }
 
@@ -53,7 +53,7 @@ const Login = () => {
             setEmailError('Please enter a valid email address');
             return;
         }
-        
+
         await window.ethereum.request({
             method: "eth_requestAccounts",
         });
@@ -62,11 +62,11 @@ const Login = () => {
             // Patient login
             try {
                 const patientCIDs = await mycontract.methods.getPatient().call();
-                
+
                 for (const cid of patientCIDs) {
                     try {
                         const data = await getFromIPFS(cid);
-                        
+
                         if (data.mail === log.mail) {
                             if (data.password === log.password) {
                                 setCookie('hash', cid);
@@ -94,11 +94,11 @@ const Login = () => {
             // Doctor login
             try {
                 const doctorCIDs = await mycontract.methods.getDoctor().call();
-                
+
                 for (const cid of doctorCIDs) {
                     try {
                         const data = await getFromIPFS(cid);
-                        
+
                         if (data.mail === log.mail) {
                             if (data.password === log.password) {
                                 setCookie('hash', cid);

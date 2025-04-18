@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "safe/package.json",
+      "use": "@vercel/static-build",
+      "config": { 
+        "distDir": "build",
+        "buildCommand": "cd safe && npm install && CI=false npm run build"
+      }
+    }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/static/(.*)", "dest": "/safe/build/static/$1" },
+    { "src": "/(.*).(js|json|css|ico|png|jpg|svg)", "dest": "/safe/build/$1.$2" },
+    { "src": "/(.*)", "dest": "/safe/build/index.html" }
+  ]
+}

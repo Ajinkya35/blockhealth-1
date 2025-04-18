@@ -32,7 +32,7 @@ const Visits = () => {
         setIsLoading(false);
       }
     };
-    
+
     init();
   }, []);
 
@@ -41,15 +41,15 @@ const Visits = () => {
       if (!window.ethereum) {
         throw new Error("MetaMask not installed");
       }
-      
+
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
-      
+
       if (accounts.length === 0) {
         throw new Error("No accounts found");
       }
-      
+
       setCurrentAccount(accounts[0]);
       console.log("Connected with:", accounts[0]);
       return accounts[0];
@@ -67,25 +67,25 @@ const Visits = () => {
         setError("Your session data couldn't be found. Please log in again.");
         return;
       }
-      
+
       console.log("Fetching visits data for hash:", cookies['hash']);
-      
+
       // Use a web3 instance connected to the browser provider
       const web3 = new Web3(window.ethereum);
       const mycontract = new web3.eth.Contract(
         contract["abi"],
         contract["address"]
       );
-      
+
       // Get patient data directly
       const data = await getFromIPFS(cookies['hash']);
-      
+
       if (!data) {
         throw new Error("Failed to retrieve patient data");
       }
-      
+
       console.log("Retrieved patient data:", data);
-      
+
       // Set visits data, ensuring it's an array
       setVisits(data.visit || []);
     } catch (error) {
@@ -103,62 +103,62 @@ const Visits = () => {
   const submit = async () => {
     try {
       setIsLoading(true);
-      
+
       // Validate form data
       if (!addFormData.name || !addFormData.date || !addFormData.reason) {
         alert("Please fill in all fields");
         return;
       }
-      
+
       // Ensure wallet is connected
       const address = currentAccount || await connectWallet();
-      
+
       // Use a web3 instance connected to the browser provider
       const web3 = new Web3(window.ethereum);
       const mycontract = new web3.eth.Contract(
         contract["abi"],
         contract["address"]
       );
-      
+
       if (!cookies['hash']) {
         alert("Please log in first");
         return;
       }
-      
+
       // Get patient data
       const data = await getFromIPFS(cookies['hash']);
-      
+
       if (!data) {
         throw new Error("Failed to retrieve patient data");
       }
-      
+
       // Update visits
       const updatedVisits = [...(data.visit || []), addFormData];
       data.visit = updatedVisits;
-      
+
       console.log("Updating patient data with:", data);
-      
+
       // Upload updated data
       const hash = await uploadJSONToPinata(data);
-      
+
       console.log("New IPFS hash:", hash);
-      
+
       // Update blockchain
-      const result = await mycontract.methods.addPatient(hash).send({ 
+      const result = await mycontract.methods.addPatient(hash).send({
         from: address,
-        gas: 200000 
+        gas: 200000
       });
-      
+
       console.log("Transaction result:", result);
-      
+
       // Update cookie with new hash
       setCookie('hash', hash, { path: '/' });
-      
+
       alert("Checkup History Added Successfully");
-      
+
       // Refresh visits list
       setVisits(updatedVisits);
-      
+
       // Clear form
       setAddFormData({
         name: "",
@@ -183,7 +183,7 @@ const Visits = () => {
         <div className="fixed md:static bg-main-bg dark:bg-main-dark-bg navbar w-full ">
           <Navbar />
         </div>
-        
+
         <div style={{ display: "flex", flexDirection: "column", padding: "4rem", justifyContent: "center", alignItems: "flex-end", gap: "4rem" }}>
           {isLoading ? (
             <div>Loading checkup history...</div>
@@ -221,8 +221,8 @@ const Visits = () => {
               </form>
 
               <form style={{
-                display: 'flex', 
-                flexDirection: 'column', 
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '1rem',
                 backgroundColor: 'rgb(3, 201, 215)',
                 justifyContent: 'center',
@@ -260,18 +260,18 @@ const Visits = () => {
                   onChange={handleAddFormChange}
                   style={{ padding: "8px", width: "100%", borderRadius: "5px", border: "none" }}
                 />
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={submit}
                   disabled={isLoading}
-                  style={{ 
-                    padding: "10px 20px", 
-                    backgroundColor: "#4CAF50", 
-                    color: "white", 
-                    border: "none", 
-                    borderRadius: "5px", 
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
                     cursor: "pointer",
-                    width: "100%" 
+                    width: "100%"
                   }}
                 >
                   {isLoading ? "Saving..." : "Save"}

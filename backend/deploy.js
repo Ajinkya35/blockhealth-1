@@ -8,11 +8,11 @@ const bytecode = fs.readFileSync("./contracts/Cruds.bin").toString();
 
 // Connect to Sepolia via Infura
 const web3 = new Web3(new Web3.providers.HttpProvider(
-  'https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}'
+  `https://sepolia.infura.io/v3/${process.env.INFURA_API_KEY}`
 ));
 
 // Import wallet using private key from env
-const account = web3.eth.accounts.privateKeyToAccount('0x${process.env.PRIVATE_KEY}');
+const account = web3.eth.accounts.privateKeyToAccount(`0x${process.env.PRIVATE_KEY}`);
 web3.eth.accounts.wallet.add(account);
 const deployerAccount = account.address;
 
