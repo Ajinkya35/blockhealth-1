@@ -99,10 +99,10 @@ Collaborate with healthcare providers to offer a complete solution for medical r
 - React
 - Tailwind CSS
 
-### <u>TEAM THE BOYS :</u>
+### <u>TEAM :</u>
 
->Viraj Chandra (Frontend)
-Piyush Kumar (Backend)
-Vibhor Singh (ML)
-Aniket Kumar (Frontend)
-Anurag Deo (Frontend)
+>Manoj Mule (Frontend)
+Ajinkya Matre (Backend)
+Harshda Sawai (ML)
+Piyush pise (Frontend)
+Sanika Shedbale (Frontend)
