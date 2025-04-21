@@ -156,7 +156,7 @@ const Signup = () => {
                 // Patient registration: check if email already exists
                 const patientCIDs = await mycontract.methods.getPatient().call();
                 for (const cid of patientCIDs) {
-                    const data = await uploadJSONToPinata.getFromIPFS(cid);
+                    const data = await getFromIPFS(cid);
                     if (data && data.mail === regp.mail) {
                         alert("A patient with this email is already registered.");
                         return;
@@ -166,7 +166,7 @@ const Signup = () => {
                 // Doctor registration: check if email already exists
                 const doctorCIDs = await mycontract.methods.getDoctor().call();
                 for (const cid of doctorCIDs) {
-                    const data = await uploadJSONToPinata.getFromIPFS(cid);
+                    const data = await getFromIPFS(cid);
                     if (data && data.mail === regd.mail) {
                         alert("A doctor with this email is already registered.");
                         return;
