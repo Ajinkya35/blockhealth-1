@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import './Signup.css';
 import Web3 from "web3";
 import contract from '../contracts/contract.json';
-import { uploadJSONToPinata } from "../services/pinata-service";
+import { uploadJSONToPinata, getFromIPFS } from "../services/pinata-service";
 
 const Signup = () => {
     const [isConnected, setIsConnected] = useState(false);
@@ -150,6 +150,30 @@ const Signup = () => {
                 contract.abi,
                 contract.address
             );
+
+            // --- ADD THIS BLOCK: Check if user already exists ---
+            if (!type) {
+                // Patient registration: check if email already exists
+                const patientCIDs = await mycontract.methods.getPatient().call();
+                for (const cid of patientCIDs) {
+                    const data = await uploadJSONToPinata.getFromIPFS(cid);
+                    if (data && data.mail === regp.mail) {
+                        alert("A patient with this email is already registered.");
+                        return;
+                    }
+                }
+            } else {
+                // Doctor registration: check if email already exists
+                const doctorCIDs = await mycontract.methods.getDoctor().call();
+                for (const cid of doctorCIDs) {
+                    const data = await uploadJSONToPinata.getFromIPFS(cid);
+                    if (data && data.mail === regd.mail) {
+                        alert("A doctor with this email is already registered.");
+                        return;
+                    }
+                }
+            }
+            // --- END BLOCK ---
 
             console.log("User type:", type ? "Doctor" : "Patient");
 
