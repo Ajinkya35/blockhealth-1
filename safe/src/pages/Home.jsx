@@ -260,7 +260,7 @@ const Home = () => {
                     <li className="contact__address">Telephone: <span className="contact__information">7387129294</span>
                     </li>
                     <li className="contact__address">Email: <span
-                            className="contact__information">MediVault2025@gmail.com</span></li>
+                            className="contact__information">BlockHealth2025@gmail.com</span></li>
                     <li className="contact__address">Location: <span className="contact__information"> Vit college,
                             Upper indira nagar,Pune 492010</span></li>
                 </ul>
@@ -275,7 +275,7 @@ const Home = () => {
           <p className="footer__copy">
             Design And Developed By The Unstoppable
           </p>
-          <p className="footer__copy">&#169; MediVault. All right reserved</p>
+          <p className="footer__copy">&#169; BlockHealth. All right reserved</p>
         </footer>
     </div>
   );
